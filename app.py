@@ -1,9 +1,3 @@
-"""
-Land Cover Change Analysis App
-Interactive map to select a location and analyze historical land cover changes (2015-2019).
-Uses Copernicus Global Land Cover (CGLS-LC100) data at 100m resolution.
-"""
-
 import streamlit as st
 import ee
 import os
@@ -23,19 +17,15 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 import pandas as pd
 
-# Load environment variables
 load_dotenv()
 GEE_PROJECT = os.getenv("GEE_PROJECT")
 
-# Page config
 st.set_page_config(
     page_title="Land Cover Change Tracker",
     page_icon="🌍",
     layout="wide"
 )
 
-# MODIS MCD12Q1 IGBP Land Cover Classes (17 classes + water/unclassified)
-# This dataset has annual data from 2001-2022 (20+ years!)
 MODIS_IGBP_CLASSES = {
     1: ("Evergreen Needleleaf Forests", "#086a1a"),
     2: ("Evergreen Broadleaf Forests", "#0e6313"),
@@ -56,7 +46,6 @@ MODIS_IGBP_CLASSES = {
     17: ("Water Bodies", "#0064c8"),
 }
 
-# Aggregated classes for simpler analysis (ignoring wetland and barren as requested)
 AGGREGATED_CLASSES = {
     "Forest": [1, 2, 3, 4, 5],
     "Shrubland": [6, 7],
@@ -79,7 +68,6 @@ AGGREGATED_COLORS = {
     "Other": "#A9A9A9",
 }
 
-# Custom CSS for premium styling
 st.markdown("""
 <style>
     .main {
@@ -176,7 +164,6 @@ st.markdown("""
 
 @st.cache_resource
 def initialize_gee():
-    """Initialize Google Earth Engine."""
     if not GEE_PROJECT:
         return False
     try:
@@ -192,15 +179,9 @@ def initialize_gee():
 
 
 def download_satellite_image(center_lon, center_lat, size_meters=5000, image_size=512, year=2019):
-    """Download satellite image from GEE and return as PIL Image.
-    
-    Uses Sentinel-2 as primary source, falls back to Landsat 8 for older years
-    or when Sentinel-2 data is unavailable.
-    """
     center = ee.Geometry.Point([center_lon, center_lat])
     region = center.buffer(size_meters / 2).bounds()
     
-    # Try Sentinel-2 first (available from mid-2015)
     try:
         collection = (
             ee.ImageCollection("COPERNICUS/S2_SR_HARMONIZED")
@@ -209,7 +190,6 @@ def download_satellite_image(center_lon, center_lat, size_meters=5000, image_siz
             .filter(ee.Filter.lt("CLOUDY_PIXEL_PERCENTAGE", 30))
         )
         
-        # Check if collection has images
         count = collection.size().getInfo()
         if count > 0:
             image = collection.median().select(["B4", "B3", "B2"])
@@ -227,7 +207,6 @@ def download_satellite_image(center_lon, center_lat, size_meters=5000, image_siz
     except:
         pass
     
-    # Fallback to Landsat 8 (available from 2013)
     try:
         collection = (
             ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
@@ -238,13 +217,11 @@ def download_satellite_image(center_lon, center_lat, size_meters=5000, image_siz
         
         count = collection.size().getInfo()
         if count > 0:
-            # Apply scaling factors for Landsat
             def apply_scale(img):
                 optical = img.select("SR_B.*").multiply(0.0000275).add(-0.2)
                 return optical.clamp(0, 1)
             
             image = collection.map(apply_scale).median()
-            # Landsat 8 RGB bands: SR_B4 (Red), SR_B3 (Green), SR_B2 (Blue)
             vis_image = image.select(["SR_B4", "SR_B3", "SR_B2"]).visualize(
                 min=0, max=0.3
             )
@@ -261,21 +238,13 @@ def download_satellite_image(center_lon, center_lat, size_meters=5000, image_siz
     except:
         pass
     
-    # If both fail, raise an exception
     raise Exception(f"No satellite imagery available for {year} in this region")
 
 
 def download_modis_landcover(center_lon, center_lat, year, size_meters=5000, image_size=512):
-    """Download MODIS MCD12Q1 Land Cover data for a specific year.
-    
-    MODIS data available from 2001-2022 at 500m resolution.
-    Uses IGBP classification scheme.
-    """
     center = ee.Geometry.Point([center_lon, center_lat])
     region = center.buffer(size_meters / 2).bounds()
     
-    # Load MODIS Land Cover Type Yearly Global 500m
-    # LC_Type1 = IGBP classification (17 classes)
     landcover = (
         ee.ImageCollection("MODIS/061/MCD12Q1")
         .filter(ee.Filter.calendarRange(year, year, "year"))
@@ -283,7 +252,6 @@ def download_modis_landcover(center_lon, center_lat, year, size_meters=5000, ima
         .select("LC_Type1")
     )
     
-    # Download as numpy array
     url = landcover.getDownloadURL({
         "region": region,
         "dimensions": f"{image_size}x{image_size}",
@@ -293,7 +261,6 @@ def download_modis_landcover(center_lon, center_lat, year, size_meters=5000, ima
     response = requests.get(url)
     response.raise_for_status()
     
-    # Load and extract the data
     raw_data = np.load(BytesIO(response.content))
     
     if raw_data.dtype.names:
@@ -305,7 +272,6 @@ def download_modis_landcover(center_lon, center_lat, year, size_meters=5000, ima
 
 
 def calculate_class_percentages(lc_data):
-    """Calculate percentages for each aggregated class."""
     total_pixels = lc_data.size
     percentages = {}
     
@@ -318,8 +284,6 @@ def calculate_class_percentages(lc_data):
 
 
 def create_colored_mask(lc_data):
-    """Create a colored RGB mask from MODIS IGBP land cover class data."""
-    # Create color lookup table for MODIS IGBP classes
     lut = np.zeros((256, 3), dtype=np.uint8)
     for class_id, (name, hex_color) in MODIS_IGBP_CLASSES.items():
         r = int(hex_color[1:3], 16)
@@ -327,13 +291,11 @@ def create_colored_mask(lc_data):
         b = int(hex_color[5:7], 16)
         lut[class_id] = [r, g, b]
     
-    # Apply color mapping
     colored = lut[lc_data]
     return Image.fromarray(colored)
 
 
 def analyze_changes(yearly_data):
-    """Analyze changes between years."""
     years = sorted(yearly_data.keys())
     df_list = []
     
@@ -350,7 +312,6 @@ def analyze_changes(yearly_data):
 
 
 def create_trend_chart(df):
-    """Create an interactive line chart showing land cover trends."""
     fig = px.line(
         df,
         x="Year",
@@ -393,7 +354,6 @@ def create_trend_chart(df):
 
 
 def create_bar_chart(df):
-    """Create a grouped bar chart comparing first and last year."""
     years = sorted(df["Year"].unique())
     first_year = years[0]
     last_year = years[-1]
@@ -436,7 +396,6 @@ def create_bar_chart(df):
 
 
 def create_change_chart(df):
-    """Create a bar chart showing net change for each class."""
     years = sorted(df["Year"].unique())
     first_year = years[0]
     last_year = years[-1]
@@ -492,7 +451,6 @@ def create_change_chart(df):
 
 
 def create_area_chart(df):
-    """Create a stacked area chart showing land cover composition over time."""
     pivot_df = df.pivot(index="Year", columns="Class", values="Percentage").reset_index()
     
     fig = go.Figure()
@@ -537,22 +495,7 @@ def create_area_chart(df):
     return fig
 
 
-def generate_segmentation_gif(
-    yearly_images: dict,
-    labels: bool = True,
-    duration: int = 800
-) -> bytes:
-    """
-    Generate an animated GIF from yearly land cover images.
-    
-    Args:
-        yearly_images: Dict mapping year to PIL Image
-        labels: Whether to add year labels to frames
-        duration: Duration per frame in milliseconds
-        
-    Returns:
-        GIF bytes for download
-    """
+def generate_segmentation_gif(yearly_images: dict, labels: bool = True, duration: int = 800) -> bytes:
     if not yearly_images:
         return None
     
@@ -562,12 +505,10 @@ def generate_segmentation_gif(
     for year in years:
         img = yearly_images[year].copy()
         
-        # Add year label if requested
         if labels:
             from PIL import ImageDraw, ImageFont
             draw = ImageDraw.Draw(img)
             
-            # Try to use a nice font, fallback to default
             try:
                 font = ImageFont.truetype("arial.ttf", 36)
             except:
@@ -576,16 +517,13 @@ def generate_segmentation_gif(
                 except:
                     font = ImageFont.load_default()
             
-            # Draw text with background for visibility
             text = str(year)
             padding = 10
             
-            # Get text bounding box
             bbox = draw.textbbox((0, 0), text, font=font)
             text_width = bbox[2] - bbox[0]
             text_height = bbox[3] - bbox[1]
             
-            # Draw semi-transparent background rectangle
             bg_position = [
                 padding,
                 padding,
@@ -594,13 +532,11 @@ def generate_segmentation_gif(
             ]
             draw.rectangle(bg_position, fill=(0, 0, 0, 200))
             
-            # Draw text
             text_position = (padding + 10, padding + 8)
             draw.text(text_position, text, fill="white", font=font)
         
         frames.append(img.convert('P', palette=Image.ADAPTIVE, colors=256))
     
-    # Create GIF in memory
     gif_buffer = BytesIO()
     
     if len(frames) > 1:
@@ -620,27 +556,14 @@ def generate_segmentation_gif(
 
 
 def calculate_yoy_changes(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Calculate Year-over-Year percentage changes from the analysis DataFrame.
-    
-    Args:
-        df: DataFrame with Year, Class, and Percentage columns
-        
-    Returns:
-        DataFrame with year and YoY change columns for each land cover class
-    """
-    # Pivot the data to have classes as columns
     pivot_df = df.pivot(index="Year", columns="Class", values="Percentage").reset_index()
     pivot_df.columns.name = None
     
-    # Calculate YoY changes
     yoy_data = {"year": pivot_df["Year"].tolist()}
     
     for class_name in AGGREGATED_CLASSES.keys():
         if class_name in pivot_df.columns:
-            # Calculate percentage point changes
             changes = pivot_df[class_name].diff().tolist()
-            # First year has no change (NaN -> 0)
             changes[0] = 0.0
             col_name = f"{class_name.lower().replace('-', '_')}_pct_change"
             yoy_data[col_name] = changes
@@ -649,21 +572,9 @@ def calculate_yoy_changes(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def export_data_to_csv(df: pd.DataFrame, include_yoy: bool = True) -> bytes:
-    """
-    Export analysis data to CSV format for download.
-    
-    Args:
-        df: DataFrame with Year, Class, and Percentage columns
-        include_yoy: Whether to include Year-over-Year changes
-        
-    Returns:
-        CSV bytes for download
-    """
-    # Create a comprehensive export with both raw percentages and YoY changes
     pivot_df = df.pivot(index="Year", columns="Class", values="Percentage").reset_index()
     pivot_df.columns.name = None
     
-    # Rename columns to be more descriptive
     renamed_cols = {"Year": "year"}
     for col in pivot_df.columns:
         if col != "Year":
@@ -672,13 +583,11 @@ def export_data_to_csv(df: pd.DataFrame, include_yoy: bool = True) -> bytes:
     pivot_df = pivot_df.rename(columns=renamed_cols)
     
     if include_yoy:
-        # Calculate and add YoY changes
         for col in list(pivot_df.columns):
             if col != "year" and col.endswith("_pct"):
                 change_col = col.replace("_pct", "_pct_change")
                 pivot_df[change_col] = pivot_df[col].diff().fillna(0)
     
-    # Export to CSV bytes
     csv_buffer = BytesIO()
     pivot_df.to_csv(csv_buffer, index=False)
     csv_buffer.seek(0)
@@ -686,17 +595,14 @@ def export_data_to_csv(df: pd.DataFrame, include_yoy: bool = True) -> bytes:
 
 
 def main():
-    # Header
     st.markdown("# 🌍 Land Cover Change Tracker")
     st.markdown('<p class="subtitle">Analyze 20+ years of land cover changes (2001-2022) using MODIS satellite data</p>', unsafe_allow_html=True)
     
-    # Initialize GEE
     gee_ready = initialize_gee()
     if not gee_ready:
         st.error("⚠️ Google Earth Engine not configured. Please set GEE_PROJECT in your .env file.")
         st.stop()
     
-    # Sidebar settings
     with st.sidebar:
         st.markdown("### ⚙️ Settings")
         
@@ -710,7 +616,6 @@ def main():
         )
         size_meters = size_km * 1000
         
-        # Calculate approximate pixels at MODIS resolution
         approx_pixels = size_km * 1000 / 500
         st.caption(f"≈ {int(approx_pixels)}×{int(approx_pixels)} pixels at MODIS 500m resolution")
         
@@ -754,21 +659,17 @@ def main():
         st.markdown("### 🔥 Hotspot Locations")
         st.caption("Areas with significant changes (2015-2019)")
         
-        # Define hotspot locations - precise coords for documented changes
         HOTSPOTS = {
             "-- Select a hotspot --": None,
-            # Urban expansion
             "🏗️ Shenzhen Suburbs, China": {"lat": 22.65, "lon": 113.85, "desc": "Rapid urban sprawl visible"},
             "🏗️ Bangalore Outskirts, India": {"lat": 13.15, "lon": 77.45, "desc": "IT corridor expansion"},
             "🏗️ Lagos-Ikorodu, Nigeria": {"lat": 6.62, "lon": 3.50, "desc": "Megacity expansion"},
             "🏗️ Chengdu New District, China": {"lat": 30.80, "lon": 104.25, "desc": "New urban development"},
-            # Deforestation hotspots - precise frontier coordinates
             "🌳 BR-319 Road, Amazonas": {"lat": -6.5, "lon": -62.5, "desc": "Highway deforestation corridor"},
             "🌳 Novo Progresso, Pará Brazil": {"lat": -7.0, "lon": -55.4, "desc": "Cattle frontier hotspot"},
             "🌳 Sinop Region, Mato Grosso": {"lat": -11.85, "lon": -55.5, "desc": "Soy expansion frontier"},
             "🌳 Merauke, Papua Indonesia": {"lat": -7.5, "lon": 140.0, "desc": "Palm oil expansion zone"},
             "🌳 Jambi, Sumatra Indonesia": {"lat": -1.6, "lon": 103.6, "desc": "Plantation conversion"},
-            # Agricultural expansion
             "🌾 Santa Cruz, Bolivia": {"lat": -17.5, "lon": -62.5, "desc": "Soy expansion visible"},
             "🌾 Chaco, Paraguay": {"lat": -22.0, "lon": -60.0, "desc": "Cattle ranching expansion"},
         }
@@ -804,13 +705,11 @@ def main():
         *Long time range = dramatic changes visible!*
         """)
     
-    # Main content
     col1, col2 = st.columns([1, 1], gap="large")
     
     with col1:
         st.markdown("### 📍 Select Location")
         
-        # Initialize map centered on default location
         default_lat = st.session_state.get("last_lat", 50.0)
         default_lon = st.session_state.get("last_lon", 19.0)
         
@@ -820,7 +719,6 @@ def main():
             tiles="OpenStreetMap"
         )
         
-        # Add marker if location selected
         if "selected_lat" in st.session_state:
             folium.Marker(
                 [st.session_state.selected_lat, st.session_state.selected_lon],
@@ -828,18 +726,17 @@ def main():
                 icon=folium.Icon(color="red", icon="crosshairs", prefix="fa")
             ).add_to(m)
         
-        # Display map
         map_data = st_folium(m, width=None, height=400, returned_objects=["last_clicked"])
         
-        # Handle click
         if map_data and map_data.get("last_clicked"):
             clicked = map_data["last_clicked"]
             st.session_state.selected_lat = clicked["lat"]
             st.session_state.selected_lon = clicked["lng"]
             st.session_state.last_lat = clicked["lat"]
             st.session_state.last_lon = clicked["lng"]
+            if "hotspot_used" in st.session_state:
+                del st.session_state.hotspot_used
         
-        # Show selected coordinates
         if "selected_lat" in st.session_state:
             st.info(f"📌 Selected: **{st.session_state.selected_lat:.4f}°, {st.session_state.selected_lon:.4f}°**")
             
@@ -859,10 +756,9 @@ def main():
             progress_bar = st.progress(0)
             status_text = st.empty()
             
-            total_steps = len(years_to_analyze) * 2 + 1  # landcover + satellite for each year + analysis
+            total_steps = len(years_to_analyze) * 2 + 1
             current_step = 0
             
-            # Download data for each year
             for i, year in enumerate(sorted(years_to_analyze)):
                 status_text.text(f"📥 Downloading {year} MODIS land cover data...")
                 try:
@@ -882,7 +778,6 @@ def main():
                     st.session_state.analyze = False
                     st.stop()
                 
-                # Download satellite image for the year
                 status_text.text(f"🛰️ Downloading {year} satellite image...")
                 try:
                     sat_img = download_satellite_image(
@@ -905,26 +800,26 @@ def main():
             current_step += 1
             progress_bar.progress(1.0)
             
-            # Store results in session state
             st.session_state.yearly_data = yearly_data
             st.session_state.yearly_images = yearly_images
             st.session_state.change_df = df
             st.session_state.analysis_complete = True
             
-            # Auto-generate export data (CSV and GIF)
             status_text.text("📤 Generating export data...")
             
-            # Generate CSV data automatically
             csv_data = export_data_to_csv(df, include_yoy=True)
             st.session_state.csv_data = csv_data
             
-            # Generate GIF automatically
             gif_data = generate_segmentation_gif(yearly_images, labels=True, duration=800)
             st.session_state.gif_data = gif_data
             
-            # Store metadata for filenames
-            area_name = st.session_state.get("hotspot_used", "analysis")
-            safe_area_name = area_name.replace(" ", "_").replace(",", "").lower()[:30]
+            if "hotspot_used" in st.session_state:
+                area_name = st.session_state.hotspot_used
+            else:
+                lat = st.session_state.get("selected_lat", 0)
+                lon = st.session_state.get("selected_lon", 0)
+                area_name = f"{lat:.2f}_{lon:.2f}"
+            safe_area_name = area_name.replace(" ", "_").replace(",", "").replace(".", "_").lower()[:30]
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             st.session_state.export_area_name = safe_area_name
             st.session_state.export_timestamp = timestamp
@@ -933,17 +828,14 @@ def main():
             status_text.empty()
             st.session_state.analyze = False
         
-        # Display results if available
         if st.session_state.get("analysis_complete"):
             years = sorted(st.session_state.yearly_images.keys())
             
-            # Show satellite and land cover images for first and last year
             first_year = years[0]
             last_year = years[-1]
             
             st.markdown(f"**{first_year} → {last_year} Comparison**")
             
-            # Placeholder HTML for missing satellite images
             placeholder_html = """
                 <div style="
                     width: 100%;
@@ -961,11 +853,9 @@ def main():
                 <p style="text-align: center; color: rgba(255,255,255,0.5); font-size: 0.8rem; margin-top: 0;">No satellite image</p>
             """
             
-            # First year column
             img_cols = st.columns(2)
             with img_cols[0]:
                 st.markdown(f"**{first_year}**")
-                # Show satellite image if available
                 sat_key = f"sat_img_{first_year}"
                 if sat_key in st.session_state and st.session_state[sat_key] is not None:
                     st.image(st.session_state[sat_key], use_container_width=True, caption="Satellite")
@@ -975,7 +865,6 @@ def main():
             
             with img_cols[1]:
                 st.markdown(f"**{last_year}**")
-                # Show satellite image if available
                 sat_key = f"sat_img_{last_year}"
                 if sat_key in st.session_state and st.session_state[sat_key] is not None:
                     st.image(st.session_state[sat_key], use_container_width=True, caption="Satellite")
@@ -1004,7 +893,6 @@ def main():
                 unsafe_allow_html=True
             )
     
-    # Show charts if analysis is complete
     if st.session_state.get("analysis_complete"):
         st.markdown("---")
         st.markdown("## 📊 Land Cover Change Analysis")
@@ -1014,10 +902,8 @@ def main():
         first_year = years[0]
         last_year = years[-1]
         
-        # Key metrics
         st.markdown("### 🔑 Key Findings")
         
-        # Calculate changes for key classes (safely)
         def get_class_value(df, year, class_name):
             vals = df[(df["Year"] == year) & (df["Class"] == class_name)]["Percentage"].values
             return vals[0] if len(vals) > 0 else 0
@@ -1069,7 +955,6 @@ def main():
                 delta=f"{first_year}-{last_year}"
             )
         
-        # Charts
         st.markdown("### 📈 Trend Analysis")
         
         chart_tabs = st.tabs(["📈 Trends", "📊 Comparison", "📉 Net Change", "🗺️ Composition"])
@@ -1086,7 +971,6 @@ def main():
             fig, changes = create_change_chart(df)
             st.plotly_chart(fig, use_container_width=True)
             
-            # Summary text
             st.markdown("#### 📝 Summary")
             
             increasing = [c for c in changes if c["Change"] > 0.1]
@@ -1107,7 +991,6 @@ def main():
             fig = create_area_chart(df)
             st.plotly_chart(fig, use_container_width=True)
         
-        # Year-by-year gallery
         st.markdown("### 🖼️ Year-by-Year Gallery")
         st.markdown("*Satellite imagery (top) and land cover classification (bottom)*")
         
@@ -1116,12 +999,10 @@ def main():
             with year_cols[i]:
                 st.markdown(f"**{year}**")
                 
-                # Show satellite image if available, otherwise show placeholder
                 sat_key = f"sat_img_{year}"
                 if sat_key in st.session_state and st.session_state[sat_key] is not None:
                     st.image(st.session_state[sat_key], use_container_width=True, caption="Satellite")
                 else:
-                    # Create a placeholder box to maintain alignment
                     st.markdown(
                         """
                         <div style="
@@ -1142,22 +1023,18 @@ def main():
                         unsafe_allow_html=True
                     )
                 
-                # Show land cover classification
                 st.image(st.session_state.yearly_images[year], use_container_width=True, caption="Land Cover")
                 
-                # Show percentages for this year
                 year_data = df[df["Year"] == year]
                 with st.expander("📊 Details"):
                     for _, row in year_data.iterrows():
                         if row["Percentage"] > 0.5:
                             st.caption(f"{row['Class']}: {row['Percentage']:.1f}%")
         
-        # Export & Reports Section
         st.markdown("---")
         st.markdown("## 📤 Export & Reports")
         st.markdown("*Data exports are automatically generated — download below or generate a full report*")
         
-        # Get stored export metadata
         safe_area_name = st.session_state.get("export_area_name", "analysis")
         timestamp = st.session_state.get("export_timestamp", datetime.now().strftime("%Y%m%d_%H%M%S"))
         
@@ -1198,35 +1075,34 @@ def main():
         with export_cols[2]:
             st.markdown("#### 📄 Full Report")
             
-            # Check if Gemini API key is available
             gemini_key = os.getenv("GEMINI_API_KEY")
             
             if st.button("🚀 Generate Report", type="primary", use_container_width=True, 
                         disabled=not gemini_key):
                 with st.spinner("Generating comprehensive report..."):
                     try:
-                        # Import the pipeline
                         from agent.pipeline import SatelliteAnalysisPipeline
                         
-                        # Save GIF to temp file for the pipeline
                         gif_temp_path = os.path.join(tempfile.gettempdir(), f"timelapse_{safe_area_name}.gif")
                         with open(gif_temp_path, "wb") as f:
                             f.write(st.session_state.gif_data)
                         
-                        # Prepare YoY data for pipeline
                         yoy_df = calculate_yoy_changes(df)
                         
-                        # Get area name
-                        area_display_name = st.session_state.get("hotspot_used", "Selected Area")
+                        if "hotspot_used" in st.session_state:
+                            area_display_name = st.session_state.hotspot_used
+                        else:
+                            lat = st.session_state.get("selected_lat", 0)
+                            lon = st.session_state.get("selected_lon", 0)
+                            area_display_name = f"{lat:.4f}°, {lon:.4f}°"
                         
-                        # Run the pipeline
                         pipeline = SatelliteAnalysisPipeline(gemini_api_key=gemini_key)
                         result = pipeline.run_sequential(
                             data_df=yoy_df,
                             area_name=area_display_name,
                             gif_path=gif_temp_path,
                             time_period={"start": str(years[0]), "end": str(years[-1])},
-                            generate_pdf=False  # Skip PDF as requested to avoid GTK dependency issues
+                            generate_pdf=False
                         )
                         
                         if result.get("error"):
@@ -1251,17 +1127,13 @@ def main():
             if st.session_state.get("report_result"):
                 result = st.session_state.report_result
                 
-                # HTML Report download
-                # HTML Report Actions
                 if result.get("html_path") and os.path.exists(result["html_path"]):
                     col_open, col_dl = st.columns([1, 1])
                     
                     with col_open:
                         if st.button("📄 Open Report", use_container_width=True):
                             try:
-                                # Convert path to file URL for local opening
                                 file_path = os.path.abspath(result["html_path"])
-                                # Handle Windows paths
                                 if os.name == 'nt':
                                     file_path = file_path.replace('\\', '/')
                                 
@@ -1280,7 +1152,6 @@ def main():
                             use_container_width=True
                         )
                 
-                # PDF Report download (if available)
                 if result.get("pdf_path") and os.path.exists(result["pdf_path"]):
                     with open(result["pdf_path"], "rb") as f:
                         pdf_content = f.read()
