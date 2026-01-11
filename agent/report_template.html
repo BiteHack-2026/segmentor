@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Analysis Report - {{ area_name }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .header .period {
+            margin-top: 15px;
+            font-size: 1.1em;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .executive-summary {
+            background-color: #ecf0f1;
+            padding: 25px;
+            border-left: 5px solid #3498db;
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            border-radius: 5px;
+        }
+
+        .filmstrip-container {
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .filmstrip-container h2 {
+            font-size: 1.6em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .filmstrip-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .data-table-container {
+            margin: 30px 0;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        .positive {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .negative {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .neutral {
+            color: #95a5a6;
+        }
+
+        .analysis-section {
+            margin: 30px 0;
+            padding: 25px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .analysis-section h3 {
+            font-size: 1.4em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .analysis-section h3::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background-color: #3498db;
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+
+        .analysis-section p {
+            font-size: 1.05em;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+
+        .forest-icon::before {
+            content: '🌲';
+        }
+
+        .urban-icon::before {
+            content: '🏙️';
+        }
+
+        .water-icon::before {
+            content: '💧';
+        }
+
+        .footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .footer .timestamp {
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                background-color: white;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+
+            .filmstrip-container {
+                page-break-inside: avoid;
+            }
+
+            .analysis-section {
+                page-break-inside: avoid;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            th,
+            td {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <h1>🛰️ Satellite Analysis Report</h1>
+            <div class="subtitle">Land Cover Change Detection</div>
+            <div class="subtitle">{{ area_name }}</div>
+            {% if time_period %}
+            <div class="period">
+                Analysis Period: {{ time_period.start }} - {{ time_period.end }}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Content Section -->
+        <div class="content">
+            <!-- Executive Summary -->
+            {% if narrative.executive_summary %}
+            <div class="executive-summary">
+                <strong>📋 Executive Summary</strong><br><br>
+                {{ narrative.executive_summary }}
+            </div>
+            {% endif %}
+
+            <!-- Filmstrip Section -->
+            {% if filmstrip_path %}
+            <div class="filmstrip-container">
+                <h2>📸 Temporal Visualization</h2>
+                <img src="{{ filmstrip_path }}" alt="Satellite imagery filmstrip showing changes over time">
+                <p style="margin-top: 15px; color: #7f8c8d; font-size: 0.95em;">
+                    Visual progression of land cover changes from start to end of analysis period
+                </p>
+            </div>
+            {% endif %}
+
+            <!-- Data Table Section -->
+            <div class="section">
+                <h2 class="section-title">📊 Year-over-Year Changes</h2>
+                <div class="data-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                {% for column in data_columns %}
+                                {% if column != 'year' %}
+                                <th>{{ column | replace('_pct', '') | replace('_change', '') | replace('_', ' ') | title
+                                    }}</th>
+                                {% endif %}
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for index, row in data_df.iterrows() %}
+                            <tr>
+                                <td><strong>{{ row['year'] | int }}</strong></td>
+                                {% for column in data_columns %}
+                                {% if column != 'year' %}
+                                <td>
+                                    {% set value = row[column] %}
+                                    {% if value is not none %}
+                                    {% if value > 0 %}
+                                    <span class="positive">+{{ "%.2f" | format(value) }}%</span>
+                                    {% elif value < 0 %} <span class="negative">{{ "%.2f" | format(value) }}%</span>
+                                        {% else %}
+                                        <span class="neutral">{{ "%.2f" | format(value) }}%</span>
+                                        {% endif %}
+                                        {% else %}
+                                        <span class="neutral">N/A</span>
+                                        {% endif %}
+                                </td>
+                                {% endif %}
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detailed Analysis Sections -->
+            <div class="section">
+                <h2 class="section-title">🔍 Detailed Analysis</h2>
+
+                <!-- Forest Analysis -->
+                {% if narrative.forest_analysis %}
+                <div class="analysis-section">
+                    <h3><span class="icon forest-icon"></span>Forest Cover Analysis</h3>
+                    <p>{{ narrative.forest_analysis }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Urban Analysis -->
+                {% if narrative.urban_analysis %}
+                <div class="analysis-section">
+                    <h3><span class="icon urban-icon"></span>Urban Expansion Analysis</h3>
+                    <p>{{ narrative.urban_analysis }}</p>
+                </div>
+                {% endif %}
+
+                <!-- Water Analysis -->
+                {% if narrative.water_analysis %}
+                <div class="analysis-section">
+                    <h3><span class="icon water-icon"></span>Water Bodies Analysis</h3>
+                    <p>{{ narrative.water_analysis }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+        <!-- Footer Section -->
+        <div class="footer">
+            <div>Generated by Satellite Analysis Agent</div>
+            <div class="timestamp">Report generated on {{ generation_timestamp }}</div>
+        </div>
+    </div>
+</body>
+
+</html>
