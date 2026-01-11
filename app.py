@@ -12,6 +12,8 @@ import numpy as np
 from PIL import Image
 from io import BytesIO
 import tempfile
+import base64
+import webbrowser
 from datetime import datetime
 from dotenv import load_dotenv
 import folium
@@ -1250,16 +1252,33 @@ def main():
                 result = st.session_state.report_result
                 
                 # HTML Report download
+                # HTML Report Actions
                 if result.get("html_path") and os.path.exists(result["html_path"]):
-                    with open(result["html_path"], "r", encoding="utf-8") as f:
-                        html_content = f.read()
-                    st.download_button(
-                        label="📥 Download HTML",
-                        data=html_content,
-                        file_name=f"report_{safe_area_name}.html",
-                        mime="text/html",
-                        use_container_width=True
-                    )
+                    col_open, col_dl = st.columns([1, 1])
+                    
+                    with col_open:
+                        if st.button("📄 Open Report", use_container_width=True):
+                            try:
+                                # Convert path to file URL for local opening
+                                file_path = os.path.abspath(result["html_path"])
+                                # Handle Windows paths
+                                if os.name == 'nt':
+                                    file_path = file_path.replace('\\', '/')
+                                
+                                webbrowser.open(f"file:///{file_path}")
+                            except Exception as e:
+                                st.error(f"Could not open browser: {e}")
+                    
+                    with col_dl:
+                        with open(result["html_path"], "r", encoding="utf-8") as f:
+                            html_content = f.read()
+                        st.download_button(
+                            label="💾 Save HTML",
+                            data=html_content,
+                            file_name=f"report_{safe_area_name}.html",
+                            mime="text/html",
+                            use_container_width=True
+                        )
                 
                 # PDF Report download (if available)
                 if result.get("pdf_path") and os.path.exists(result["pdf_path"]):

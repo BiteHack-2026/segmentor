@@ -36,9 +36,18 @@ def encode_image_to_base64(image_path: str) -> str:
         ReportAssemblerError: If image cannot be read
     """
     try:
+        # Determine mime type from extension
+        ext = os.path.splitext(image_path)[1].lower()
+        if ext == '.gif':
+            mime_type = 'image/gif'
+        elif ext in ['.jpg', '.jpeg']:
+            mime_type = 'image/jpeg'
+        else:
+            mime_type = 'image/png'
+
         with open(image_path, "rb") as image_file:
             encoded = base64.b64encode(image_file.read()).decode("utf-8")
-            return f"data:image/png;base64,{encoded}"
+            return f"data:{mime_type};base64,{encoded}"
     except Exception as e:
         raise ReportAssemblerError(f"Failed to encode image: {str(e)}")
 
@@ -261,7 +270,13 @@ def node_4_report_assembler(state: dict, template_path: Optional[str] = None) ->
         narrative_json = state.get("narrative_json")
         area_name = state.get("area_name", "Study Area")
         time_period = state.get("time_period")
+        
+        # Use GIF for HTML report if available (better visualization)
+        # Fallback to generated filmstrip if GIF is missing
+        gif_path = state.get("gif_path")
         filmstrip_path = state.get("filmstrip_path")
+        
+        report_image_path = gif_path if (gif_path and os.path.exists(gif_path)) else filmstrip_path
 
         # Validate inputs
         if data_df is None:
@@ -285,7 +300,7 @@ def node_4_report_assembler(state: dict, template_path: Optional[str] = None) ->
             area_name=area_name,
             output_path=output_path,
             time_period=time_period,
-            filmstrip_path=filmstrip_path,
+            filmstrip_path=report_image_path,
             template_path=template_path,
             embed_images=True,  # Embed for standalone HTML
         )
