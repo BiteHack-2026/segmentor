@@ -167,6 +167,7 @@ class SatelliteAnalysisPipeline:
         area_name: str,
         gif_path: str,
         time_period: Optional[Dict[str, str]] = None,
+        generate_pdf: bool = True,
     ) -> Dict[str, Any]:
         """
         Executes the pipeline sequentially without LangGraph (fallback mode).
@@ -177,6 +178,8 @@ class SatelliteAnalysisPipeline:
             area_name: Name of the geographic area
             gif_path: Path to satellite timelapse GIF
             time_period: Optional dict with 'start' and 'end' years
+            generate_pdf: Whether to generate PDF report
+
 
         Returns:
             Final state dictionary with all outputs
@@ -233,7 +236,7 @@ class SatelliteAnalysisPipeline:
 
         # Node 5: Publisher
         print("\n📦 [5/5] Running Publisher...")
-        state = node_5_publisher(state)
+        state = node_5_publisher(state, generate_pdf_output=generate_pdf)
         if state.get("error"):
             print(f"   ✗ Error: {state['error']}")
             return state

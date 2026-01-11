@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satellite Analysis Report - 🌾 Santa Cruz, Bolivia</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            font-size: 1.2em;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .header .period {
+            margin-top: 15px;
+            font-size: 1.1em;
+            padding: 10px 20px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #3498db;
+        }
+
+        .executive-summary {
+            background-color: #ecf0f1;
+            padding: 25px;
+            border-left: 5px solid #3498db;
+            font-size: 1.1em;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            border-radius: 5px;
+        }
+
+        .filmstrip-container {
+            text-align: center;
+            margin: 40px 0;
+            padding: 30px;
+            background-color: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .filmstrip-container h2 {
+            font-size: 1.6em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .filmstrip-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .data-table-container {
+            margin: 30px 0;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        thead {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+        }
+
+        th {
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #ecf0f1;
+        }
+
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #fafafa;
+        }
+
+        .positive {
+            color: #27ae60;
+            font-weight: 600;
+        }
+
+        .negative {
+            color: #e74c3c;
+            font-weight: 600;
+        }
+
+        .neutral {
+            color: #95a5a6;
+        }
+
+        .analysis-section {
+            margin: 30px 0;
+            padding: 25px;
+            background-color: #ffffff;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .analysis-section h3 {
+            font-size: 1.4em;
+            color: #2c3e50;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .analysis-section h3::before {
+            content: '';
+            width: 4px;
+            height: 24px;
+            background-color: #3498db;
+            margin-right: 12px;
+            border-radius: 2px;
+        }
+
+        .analysis-section p {
+            font-size: 1.05em;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+        }
+
+        .forest-icon::before {
+            content: '🌲';
+        }
+
+        .urban-icon::before {
+            content: '🏙️';
+        }
+
+        .water-icon::before {
+            content: '💧';
+        }
+
+        .footer {
+            background-color: #2c3e50;
+            color: white;
+            padding: 30px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+
+        .footer .timestamp {
+            opacity: 0.8;
+            margin-top: 10px;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                background-color: white;
+            }
+
+            .container {
+                box-shadow: none;
+            }
+
+            .filmstrip-container {
+                page-break-inside: avoid;
+            }
+
+            .analysis-section {
+                page-break-inside: avoid;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            th,
+            td {
+                padding: 8px;
+                font-size: 0.9em;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <div class="header">
+            <h1>🛰️ Satellite Analysis Report</h1>
+            <div class="subtitle">Land Cover Change Detection</div>
+            <div class="subtitle">🌾 Santa Cruz, Bolivia</div>
+            
+            <div class="period">
+                Analysis Period: 2001 - 2020
+            </div>
+            
+        </div>
+
+        <!-- Content Section -->
+        <div class="content">
+            <!-- Executive Summary -->
+            
+            <div class="executive-summary">
+                <strong>📋 Executive Summary</strong><br><br>
+                From 2001 to 2020, Santa Cruz, Bolivia experienced significant land cover transformations primarily driven by agricultural expansion. The dominant trend observed is a consistent increase in Cropland, largely at the expense of Forest and Savanna ecosystems. The period around 2005-2010 appears particularly dynamic, with a notable forest loss of -5.03% in 2005 and the largest cropland expansion of +6.8% in 2010.
+            </div>
+            
+
+            <!-- Filmstrip Section -->
+            
+            <div class="filmstrip-container">
+                <h2>📸 Temporal Visualization</h2>
+                <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAgAAAAYKCAIAAAAuzkTYAAB3aklEQVR4nO3df5DU9Z3n8e/8YGBgMpDAgJecxClCiCGYsDIaiexZIgo4slJXFalaRepIUpdka1PmXI1uEcli1Koz5xk3ZpPVrLhW6eolMdbsoBAWsySclZkNEc9CRG4sWQtwwMNxpGVwhqvxO/3pT3d/vt/P92f3t/v9fPyTr823u7/d0zPvfL+vfr8/DblHX3U8DO1scXy1Lx9xKmbpQrU5tOVglQ+mGq/L68dReOHaQxnpjz+ve5nhoea2qu0nBo66G11LcoV7neiceKg3Cjce6tntfzDG12V5LVnV17JEbS/Ytq/8sPUfU/um+RP36i+8sd07JiV1MD0rzgTfWT1vtHsZja2c6n/3xmdPle9svFG/3XpjZg0unvit0XXsPSeN5+odfcfdWN00PfKDNCZ3PACAWkIBAAChKAAAIFSDTwZgpS53Zv/SbbbYLtbrFw3VVUX9Srq6uKzTdziw6gK1rS4R6pf49Yv4/vRL/Eb6wahj8Losbn6Eanx+ii7WJ3cA+sOqoEW/6l1J1sv9wYMBPQyw7ux/VTr+u2EMCbx2SORaecDr/ild7k8PZwAAIBQFAACEogAAgFAUAAAQqjnOnes2+9VD2j0vp/pU1mhXxUqDpn8typ2KersMeZce/KpAeO+D2y0/XNtPOXifl/nxq6QCB6De5GGnciGwntAGbzrz2jNU11jAYNYa4Rp5NYIZ+8t0qpOxt79wY4KBcEetBb8hCkDr+k870oV4B+J8pQoAKoxLQAAgFAUAAISiAACAULFCYESkBcvG4Dcl5rGdsbNQa5pa9by3Wv3DKmCf33yhUyl6vNm74p3yLFQfTWoNgaPNEDVSHbn6fNk5z7Yn1oi7WL95qHxP/XmdvZYQWD1sJTPeaL36cXAGAABCUQAAQKjQBeBP/uRPtm/fvmvXrh07dpx77rmO43znO9+x3ivIPgCADE0DLe8D+OMf/9jd3f3v//7v//k//+cvf/nL11133cmTJ2fMmOH/NEH2qQPqzfSff+l13T/m1UavRhjVKTOY2+lUg/HdCB4MpDS20/gUKT2+vo6Yfo0+eBvUsdsKF7XVRXy1JJnnh0pvY8y3Nw63Ft7P/bubyu9kbR8z5gHGcaGhlj9r+9rMiSP86YngB1C4sm/t2dQaPNV7uFr7cRhXxEtphmithsCzZ8+eMmWK4zjPPPPMW2+99b3vfa+trW379u033XTTT37ykxkzZjz88MP33Xef+0f/l7/85d69e2fOnOnuc+WVV6bzKgAA6ReA22+/fffu3b29vY899tiuXbt27979rW9968orr/zxj3982223vfzyy//n//wftwBMnjz5iSeeeO655xzHcfcJf3gAgMxkAI888shnP/vZ3/72t//zf/7PzZs3q9tvueWWz3zmM7feemt7+8T3ukZHR3fs2JHo0QIAqlQAOjo6li5d+v/+3//7h3/4hyuuuOK//tf/qv7pqaeechzngQceGBsbc2/54IMP1DYAoLYvAZ09e/bJJ5+85JJLDh8+PHPmzDfeeGO8hnxoyZIl1113XUdHx+TJk8vv6O5T//UgnzK1L/XLdQe1beMOqmWmtHvFdC9rkFjolNnjVIVKVvU4N3i0W4mxnaanSDB81tNafapr8DYovXurayQ/1lI/KmsEqnZYXtQxFUGoaDfE7FJb9qus6yx8/p/on/h4d1nvpr9FWiyv6OFzt5N/jSud6kp1yclwBeD48eNf+9rXnnrqqVwuNzo6+l/+y39xHGf37t3PPPPMgw8+uGfPnhdffPHkyZOTJ08+ffq0fkd3n+7u7mSPHgBQuRC490P6LVdffbW78d3vfle/Xf/ep9rHx4oVKzZu3HjJJZfMmTMnl8sdPnx4+/btDz/88P79+1O9r66lpeWVV17p7Oz8+te//nd/93eh7gsAtSUTs4CmTZv2j//4j2vXrlW3TJ48ecaMGYsWLfrWt761efPmu+666+zZs4nft9ymTZs6OztjvyAAqAHVLwDNzc09PT2XXXaZ+5/vvvvugQMHWltbzz///MbGxubm5jvvvHPy5Mklpxfx71uuu7v79ttvT/TFAUB2Vb8A/PVf/7X7F3xsbGzTpk333XdfLjcee5577rk/+tGPrrnmGvf/mO/6UIL3LXH55Zc/+eSTjY2N6QU40XZQyZWeSfauukBtr145vfyhipZp3DOSkZ7e7PNv4Y6s6C3SosiDH7QEHBeqx557H4zVt9y2c6/aPj8fCH/+3z+h7RI0jA21FKXaQX8tevBrbDBWO+vTMfVt7VsSlpVch7X0uyuXf+u0saDWl+C/1GVK9Py/1yl8PSSRFuUE/t794Ac/OPuh48ePn3feeeU7XHDBBcPDw+4+bo+Y0tHRccstt7jbt95661133eX+BXcc5/Dhw9dee+3TTz/t/uc999xT8rBx7lti48aN27Zta201jMkFgHoVtwA0NDSsW7fO3b7zzjtff/318n327dv3wx/+0N2+9tpr9X/asGHD1Knj9XNgYOD+++8vuePY2NhXv/rVU6fGq+5FF1108cUXJ3Vfpa2t7W//9m8feuihlpbx/1elSggA1L24BeC88877+Mc/7m7//Oc/99pNfXHovPPO0xsFVD147LHHzpwxnAAeP378mWeecbe//OUv6/8U576udevWvfLKK9/85jfdFoe//Mu//P3vf297xQBQJ+IWgLa2tl27dr366qtvv/324cOHvXYbHh5W2+4sOXfjoosucrd9hkY8//zz7sYVV1yhP0jk+7pmzZr1+OOPf+IT45c+jx49etVVVz3wwAO+rxUA6krcEPill166/PLLrbt97nOfczfee++9d96ZyDE+85nPNDdPHMBLL73k8xTuxsKFC5ubmz/44IOY99WdPXv20Ucf/au/+qvBQb0/NyIVvRbSOW0CrbVX0z9i1RM/vbP0kLp7j+3wYre2xsx7MxsXW8dBp5R+q0c4trQw7XnO3e3+TaoH8l8BKLQER6UC4UP6qOQVrf5LQlrXiTTmvetMEe6gNubaGHsemjkwsTUxK7qUmm6th9tGxh0G9d9QzbFCtqwN4h5t9e+FVilxSsmwPhegtz+BNLhCK4Jt2LDB3dC/jaO+cX/yQ173VScWTU1N7hI0Me/rOnv27HPPPbd06dINGzYk8tcfAGpLJQrA1VdfvXz5cnd769at6vY5c+a4G0eP+n0V8q233lLbs2bNin9f14kTJ1auXPnCCy+EeSkAUD9SLwBz5859+OGH3e3+/n49KP7IRz7ibrjf1fFy+vRpdelGzZqOc18AwHgG4F7cTOni7KxZs3p7e93/tz48PHzDDTfoUxnU14GsX748c+aMe8V/0qRJ8e+bHsPbqF33t15oNicHpodCBeaV6j8m4w4J0hv3erQuP2Pq42zLbyT4a6t9urq0j592Kdzxv9HokJO/gq/zuJqvnL9sVG0PO4ZL/HpLl/XSv5H2CC3GHYwPqwaOHrtN/w3VYozCcRmyDWO640XlKEXzgPUfU36j12PB0SqfAcyePfvXv/71woXj79TY2NiNN974yiuv6Duo6dCj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AISyZADIpmgJatVz16ofQL3Z87LaHMwHwl5Rp579KqptOFoarD9XtP7eaIlxqE5gczK8t85D4IAvljMAABCKAgAAQoUuALlc7sknn1T/+dhjj+Vy4+caCxcu/PrXv16y88mTJ71uKf8nAECmM4DTp08vWLCgqalpdHS0oaFh3rx5p0+fdhzn5Q+lc5AI1g2kXRGGOPmffpd226C2PfwfF7sbbbmR8ov48Ruj9NXHundMCngv43V/6zRQPXs4f9mou9G2c2/wvrlK6jWNC027Ey3gDNQoIfAf/vCHrq6uF1544Qtf+MK+ffvOP/989/aTJ0/OmDFjzpw5f//3f//Rj3700KFD7u3ltygf/ehHH3jggXPOOaelpeXmm2/+/e9/H+F4AAAVygCee+65q666ynGcq6666rnnniv513vvvfef/umfli1b9vTTT0+ZMsV4i/Lf//t/f+CBB6644orrr7/+pz/9aZRXAACIJMoZwPbt27/5zW9+73vfu/zyyx988MGSf73sssu+8pWvjJ8S9vSMjo4ab1GuuuqqT33qU+72tGnT3CtL0V4JACD1AvD222+PjY2de+65418fHhoq+deWlomBX42NjQ0NDcZbCk/f3Lxy5cr333+/sbHx0ksv5a8/AGS9EezZZ5/9/ve//+tf/7r8n/bs2fNnf/ZnTz755Nq1a90/9+W3KL/73e/Wrl37+OOPr1q16i/+4i/+9V//NeoLkWtoy0F3o33TfGNKVmgJISUWTGWkw8sXGz4bHr1C+gKT5bp/al4GstGxpLj+rHvqCepgLnBTmP75b12eaquadZ3IxOd6VrQP4J//+Z+vv/763t7e8n/69re/7f4pX7x4sfsFofJbHMc5ePDgbbfddtNNN61fv/43v/nNt7/97W9+85vxXgsAIM0zgBkzZjiOs2/fvsbGRv0WtTEwMPCnf/qn7i3f+c53jLeM/1+Promvq61atcpJVEtLyyuvvNLZ2fn1r3/97/7u76z7r1ixYuPGjZdccsmcOXNyudzhw4e3b9/+8MMP79+/P9kDA4BMqYFO4L/+678uuXDkb9OmTZ2dnUH2nDZt2i9+8Yvt27dfd911c+fOnTx58owZMxYtWvTf/tt/27dvX9jnBYDaUgPD4O68887Jkyd/97vfDbJzd3f37bffHmTP5ubmnp6eyy67zP3Pd99998CBA62treeff35jY2Nzc3Oo5wWAelsSMgsrgp09e9ZxnMsvv3zXrl3+e15++eU9PT2trROxlf8loDvuuGPz5s3jwc7Y2KZNm+677z53psW55577ox/96JprrlGPaX3eDK4Ipi++qDCMEyVUIKy3BwdsIk1ctNGkKiNVLcGhuoL7PAaaqrg1fjIcsxPYa/RpIj+mBC4B/eAHPzj7oePHj5933nnlO1xwwQXDw8PuPvfdd5/+Tx0dHe+99577TzfffHPpwTU2/vKXv3S377nnHv/D2Lhx47Zt29Rff38dHR233HKLu33rrbfedddd7l9/x3EOHz587bXXPv300wGfFwBqVNwC0NDQsG7dOnf7zjvvfP3118v32bdv3w9/+EN3+9prr9X/acOGDVOnjtfPgYGB+++/v+SOY2NjX/3qV0+dGq/AF1100cUXX2w8hra2tr/927996KGH3IYD9afcRyLPCwCiC8B555338Y9/3N3++c9/7rWb+sLoeeedN3nyZHW7qgePPfbYmTOFYVLK8ePHn3nmGXf7y1/+cvkO69ate+WVV9yvkJ49e/Yv//IvgwwUiv+8ACC9ALS1te3atevVV199++23Dx8+7LXb8PCw2lbjgKZMmXLRRRe52zt27PC67/PPP+9uXHHFFSX/NGvWrMcff/wTn/iE4zhHjx696qqrHnjgAesxx39eAKgDcb8F9NJLL11++eXW3T73uc+5G++9994770xEIp/5zGeamycO4KWXXvJ5Cndj4cKFzc3NH3zwQckOZ8+effTRR//qr/5qcFAff+spqefNsqK8l3nR8FAISyONSvZqUlW3G2/0XLlQMSxeWWS41fAdB3vwa5uePaz1SBcajAu3FRStu6ndrhJjPRlWb0L89mD9hatwOE4aXKE+gA0bNrgb+jdq1Lf1T37I677qxKKpqckdQKScPXv2ueeeW7p06YYNGwL+9U/keQGgDlSiAFx99dXLl09M3ti6dau6fc6cOe7G0aN+0zzeeusttT1r1iz9n06cOLFy5coXXngh1PHEf14AqAOpF4C5c+c+/PDD7nZ/f78eFH/kIx9xN9zv23g5ffq0uvzS3t4e/5Cq9bwAIKgTeNasWb29ve7/4x4eHr7hhhvcri6X+jqQ9YubZ86cca/aT5oUdKk5H9V63mopXDfULnGGu2CKeme8uBzKoJMLeKP+XMNOi/9n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2LNnz+nTp5M4TgBAtQvA1KmF1m2X/i1Pd3tgYOBP//RP3Vu+853vBHzkFStWbNy48ZJLLpkzZ04ulzt8+PD27dsffvjh/fv3+99xypQpf/7nf97d3f0nf/Ins2bNamhoOHHixN69e//5n/9569at77//fkrPCwA1LROzgKZNm/aP//iPa9euVbdMnjx5xowZixYt+ta3vrV58+a77rrLTRfKLV++fOvWrZ/4xCf0G//jh6655po77rjj+uuv/5d/+ZfEnxcAal31R0E0Nzf39PSov8Lvvvtuf3//yy+/7EYLzc3Nd9555/e+9z3jfa+55prnnntO/fU/efJkX19ff3//0NCQe8t/+A//Yfv27VdffXWyzwsAEjuBE3fHHXds3rzZDZM3bdp033335XLjCdK55577ox/96JprrnF3u/zyy3ft2qXfcfbs2QcPHmxvH58seOTIkW9+85vPPPOM+63T5ubmdevW/fCHP/zoRz/q/nH/9Kc/ffTo0USe1wedwKhRfR5hrHmZRv802Loio0eEq47BGHt6rvgYrUPYNDw1m7x+BIkceQJnAD/4wQ/Ofuj48ePnnXde+Q4XXHDB8PCwu899992n/1NHR8ctt9zibt9666133XWX+1fYcZzDhw9fe+21Tz/9tPuf99xzT8nD3nrrre5f/xMnTixduvSXv/yl6jn44IMPHnvsscsuu+y9995zHOcjH/nIrbfemtTzAkB9iFsAGhoa1q1b527feeedr7/+evk++/bt++EPf+huX3vttfo/bdiwwU2VBwYG3C5i3djY2Fe/+tVTp045jnPRRRddfPHFVX9eAKgbcQvAeeed9/GPf9zd/vnPf+61W29vr9p/8uTJ6nb1d/mxxx47c+ZM+R2PHz/+zDPPuNtf/vKXq/68AFA34haAtra2Xbt2vfrqq2+//fbhw4e9dhseHlbbajrQlClTLrroInd7x44dXvdVbQdXXHFF1Z8XAOpG3K+BvvTSS5dffrl1t8997nPuxnvvvffOOxNhzmc+85nm5okDeOmll3yewt1YuHBhc3PzBx98UMXnrRVDOyemcTiO075pftyBuqh3eqw66JgiXP3Dk09QvZpU7Y9gPIb8vGi1vOX4/4drLXySC7ReYq3B2NICbTyYQY8eaeMCk8YVNDO1CGhGvwa6YcMGd0P/Rk1n58SE8ZMf8rqv+j/4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" alt="Satellite imagery filmstrip showing changes over time">
+                <p style="margin-top: 15px; color: #7f8c8d; font-size: 0.95em;">
+                    Visual progression of land cover changes from start to end of analysis period
+                </p>
+            </div>
+            
+
+            <!-- Data Table Section -->
+            <div class="section">
+                <h2 class="section-title">📊 Year-over-Year Changes</h2>
+                <div class="data-table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                
+                                
+                                
+                                
+                                <th>Forest</th>
+                                
+                                
+                                
+                                <th>Shrubland</th>
+                                
+                                
+                                
+                                <th>Savanna</th>
+                                
+                                
+                                
+                                <th>Grassland</th>
+                                
+                                
+                                
+                                <th>Cropland</th>
+                                
+                                
+                                
+                                <th>Built Up</th>
+                                
+                                
+                                
+                                <th>Water</th>
+                                
+                                
+                                
+                                <th>Other</th>
+                                
+                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td><strong>2001</strong></td>
+                                
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                            </tr>
+                            
+                            <tr>
+                                <td><strong>2005</strong></td>
+                                
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                     <span class="negative">-5.03%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                     <span class="negative">-1.38%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                    <span class="positive">+1.12%</span>
+                                    
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                    <span class="positive">+5.29%</span>
+                                    
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                            </tr>
+                            
+                            <tr>
+                                <td><strong>2010</strong></td>
+                                
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                    <span class="positive">+0.32%</span>
+                                    
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                     <span class="negative">-6.60%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                     <span class="negative">-0.51%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                    <span class="positive">+6.80%</span>
+                                    
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                            </tr>
+                            
+                            <tr>
+                                <td><strong>2015</strong></td>
+                                
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                     <span class="negative">-1.77%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                     <span class="negative">-1.57%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                     <span class="negative">-1.17%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                    <span class="positive">+4.52%</span>
+                                    
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                            </tr>
+                            
+                            <tr>
+                                <td><strong>2020</strong></td>
+                                
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                     <span class="negative">-0.73%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                     <span class="negative">-1.88%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                    <span class="positive">+0.13%</span>
+                                    
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                    <span class="positive">+2.49%</span>
+                                    
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                                
+                                <td>
+                                    
+                                    
+                                    
+                                        <span class="neutral">0.00%</span>
+                                        
+                                        
+                                </td>
+                                
+                                
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detailed Analysis Sections -->
+            <div class="section">
+                <h2 class="section-title">🔍 Detailed Analysis</h2>
+
+                <!-- Forest Analysis -->
+                
+                <div class="analysis-section">
+                    <h3><span class="icon forest-icon"></span>Forest Cover Analysis</h3>
+                    <p>Forest cover in Santa Cruz demonstrated a trajectory of overall decline between 2001 and 2020, despite a brief positive change. The most drastic change was a significant loss of -5.03% in 2005, indicating considerable deforestation in that period. While there was a slight increase of +0.32% in 2010, subsequent years continued to show losses of -1.77% in 2015 and -0.73% in 2020. This pattern suggests ongoing pressure on forest ecosystems, likely due to agricultural expansion, which remains a primary driver of deforestation in the region.</p>
+                </div>
+                
+
+                <!-- Urban Analysis -->
+                
+                <div class="analysis-section">
+                    <h3><span class="icon urban-icon"></span>Urban Expansion Analysis</h3>
+                    <p>The provided data indicates no recorded year-over-year percentage change for 'Built Up' land cover, showing 0.0% across all observed years. This suggests a stable urban footprint or that any urban expansion occurring between 2001 and 2020 was below the resolution or detection threshold of this specific dataset. Consequently, there are no identified years with peak urban growth based on this input, implying either a lack of significant outward expansion or that urban development might be concentrated within existing boundaries, or not captured in the 'Built Up' category.</p>
+                </div>
+                
+
+                <!-- Water Analysis -->
+                
+                <div class="analysis-section">
+                    <h3><span class="icon water-icon"></span>Water Bodies Analysis</h3>
+                    <p>Throughout the analysis period from 2001 to 2020, the data indicates no recorded year-over-year percentage change for 'Water' bodies, consistently showing 0.0%. This suggests that water bodies in Santa Cruz maintained a stable extent without significant fluctuations detectable by this dataset. Therefore, there are no identifiable patterns linked to seasonal or climate factors within this provided data.</p>
+                </div>
+                
+            </div>
+
+        </div>
+
+        <!-- Footer Section -->
+        <div class="footer">
+            <div>Generated by Satellite Analysis Agent</div>
+            <div class="timestamp">Report generated on January 11, 2026 at 03:36 AM</div>
+        </div>
+    </div>
+</body>
+
+</html>

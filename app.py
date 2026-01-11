@@ -11,6 +11,8 @@ import requests
 import numpy as np
 from PIL import Image
 from io import BytesIO
+import tempfile
+from datetime import datetime
 from dotenv import load_dotenv
 import folium
 from streamlit_folium import st_folium
@@ -533,6 +535,154 @@ def create_area_chart(df):
     return fig
 
 
+def generate_segmentation_gif(
+    yearly_images: dict,
+    labels: bool = True,
+    duration: int = 800
+) -> bytes:
+    """
+    Generate an animated GIF from yearly land cover images.
+    
+    Args:
+        yearly_images: Dict mapping year to PIL Image
+        labels: Whether to add year labels to frames
+        duration: Duration per frame in milliseconds
+        
+    Returns:
+        GIF bytes for download
+    """
+    if not yearly_images:
+        return None
+    
+    years = sorted(yearly_images.keys())
+    frames = []
+    
+    for year in years:
+        img = yearly_images[year].copy()
+        
+        # Add year label if requested
+        if labels:
+            from PIL import ImageDraw, ImageFont
+            draw = ImageDraw.Draw(img)
+            
+            # Try to use a nice font, fallback to default
+            try:
+                font = ImageFont.truetype("arial.ttf", 36)
+            except:
+                try:
+                    font = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 36)
+                except:
+                    font = ImageFont.load_default()
+            
+            # Draw text with background for visibility
+            text = str(year)
+            padding = 10
+            
+            # Get text bounding box
+            bbox = draw.textbbox((0, 0), text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+            
+            # Draw semi-transparent background rectangle
+            bg_position = [
+                padding,
+                padding,
+                padding + text_width + 20,
+                padding + text_height + 16
+            ]
+            draw.rectangle(bg_position, fill=(0, 0, 0, 200))
+            
+            # Draw text
+            text_position = (padding + 10, padding + 8)
+            draw.text(text_position, text, fill="white", font=font)
+        
+        frames.append(img.convert('P', palette=Image.ADAPTIVE, colors=256))
+    
+    # Create GIF in memory
+    gif_buffer = BytesIO()
+    
+    if len(frames) > 1:
+        frames[0].save(
+            gif_buffer,
+            format='GIF',
+            save_all=True,
+            append_images=frames[1:],
+            duration=duration,
+            loop=0
+        )
+    else:
+        frames[0].save(gif_buffer, format='GIF')
+    
+    gif_buffer.seek(0)
+    return gif_buffer.getvalue()
+
+
+def calculate_yoy_changes(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate Year-over-Year percentage changes from the analysis DataFrame.
+    
+    Args:
+        df: DataFrame with Year, Class, and Percentage columns
+        
+    Returns:
+        DataFrame with year and YoY change columns for each land cover class
+    """
+    # Pivot the data to have classes as columns
+    pivot_df = df.pivot(index="Year", columns="Class", values="Percentage").reset_index()
+    pivot_df.columns.name = None
+    
+    # Calculate YoY changes
+    yoy_data = {"year": pivot_df["Year"].tolist()}
+    
+    for class_name in AGGREGATED_CLASSES.keys():
+        if class_name in pivot_df.columns:
+            # Calculate percentage point changes
+            changes = pivot_df[class_name].diff().tolist()
+            # First year has no change (NaN -> 0)
+            changes[0] = 0.0
+            col_name = f"{class_name.lower().replace('-', '_')}_pct_change"
+            yoy_data[col_name] = changes
+    
+    return pd.DataFrame(yoy_data)
+
+
+def export_data_to_csv(df: pd.DataFrame, include_yoy: bool = True) -> bytes:
+    """
+    Export analysis data to CSV format for download.
+    
+    Args:
+        df: DataFrame with Year, Class, and Percentage columns
+        include_yoy: Whether to include Year-over-Year changes
+        
+    Returns:
+        CSV bytes for download
+    """
+    # Create a comprehensive export with both raw percentages and YoY changes
+    pivot_df = df.pivot(index="Year", columns="Class", values="Percentage").reset_index()
+    pivot_df.columns.name = None
+    
+    # Rename columns to be more descriptive
+    renamed_cols = {"Year": "year"}
+    for col in pivot_df.columns:
+        if col != "Year":
+            renamed_cols[col] = f"{col.lower().replace('-', '_')}_pct"
+    
+    pivot_df = pivot_df.rename(columns=renamed_cols)
+    
+    if include_yoy:
+        # Calculate and add YoY changes
+        for col in list(pivot_df.columns):
+            if col != "year" and col.endswith("_pct"):
+                change_col = col.replace("_pct", "_pct_change")
+                pivot_df[change_col] = pivot_df[col].diff().fillna(0)
+    
+    # Export to CSV bytes
+    csv_buffer = BytesIO()
+    pivot_df.to_csv(csv_buffer, index=False)
+    csv_buffer.seek(0)
+    return csv_buffer.getvalue()
+
+
 def main():
     # Header
     st.markdown("# 🌍 Land Cover Change Tracker")
@@ -759,6 +909,24 @@ def main():
             st.session_state.change_df = df
             st.session_state.analysis_complete = True
             
+            # Auto-generate export data (CSV and GIF)
+            status_text.text("📤 Generating export data...")
+            
+            # Generate CSV data automatically
+            csv_data = export_data_to_csv(df, include_yoy=True)
+            st.session_state.csv_data = csv_data
+            
+            # Generate GIF automatically
+            gif_data = generate_segmentation_gif(yearly_images, labels=True, duration=800)
+            st.session_state.gif_data = gif_data
+            
+            # Store metadata for filenames
+            area_name = st.session_state.get("hotspot_used", "analysis")
+            safe_area_name = area_name.replace(" ", "_").replace(",", "").lower()[:30]
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            st.session_state.export_area_name = safe_area_name
+            st.session_state.export_timestamp = timestamp
+            
             progress_bar.empty()
             status_text.empty()
             st.session_state.analyze = False
@@ -981,6 +1149,135 @@ def main():
                     for _, row in year_data.iterrows():
                         if row["Percentage"] > 0.5:
                             st.caption(f"{row['Class']}: {row['Percentage']:.1f}%")
+        
+        # Export & Reports Section
+        st.markdown("---")
+        st.markdown("## 📤 Export & Reports")
+        st.markdown("*Data exports are automatically generated — download below or generate a full report*")
+        
+        # Get stored export metadata
+        safe_area_name = st.session_state.get("export_area_name", "analysis")
+        timestamp = st.session_state.get("export_timestamp", datetime.now().strftime("%Y%m%d_%H%M%S"))
+        
+        export_cols = st.columns([1, 1, 1, 1])
+        
+        with export_cols[0]:
+            st.markdown("#### 📊 CSV Data")
+            if st.session_state.get("csv_data"):
+                csv_filename = f"landcover_{safe_area_name}_{timestamp}.csv"
+                st.download_button(
+                    label="📥 Download CSV",
+                    data=st.session_state.csv_data,
+                    file_name=csv_filename,
+                    mime="text/csv",
+                    use_container_width=True,
+                    help="All yearly percentages and YoY changes"
+                )
+                st.caption(f"✅ Ready • {len(years)} years")
+            else:
+                st.warning("CSV not generated")
+        
+        with export_cols[1]:
+            st.markdown("#### 🎬 GIF Timelapse")
+            if st.session_state.get("gif_data"):
+                gif_filename = f"timelapse_{safe_area_name}_{timestamp}.gif"
+                st.download_button(
+                    label="📥 Download GIF",
+                    data=st.session_state.gif_data,
+                    file_name=gif_filename,
+                    mime="image/gif",
+                    use_container_width=True,
+                    help="Animated land cover timelapse"
+                )
+                st.caption("✅ Ready • 800ms/frame")
+            else:
+                st.warning("GIF not generated")
+        
+        with export_cols[2]:
+            st.markdown("#### 📄 Full Report")
+            
+            # Check if Gemini API key is available
+            gemini_key = os.getenv("GEMINI_API_KEY")
+            
+            if st.button("🚀 Generate Report", type="primary", use_container_width=True, 
+                        disabled=not gemini_key):
+                with st.spinner("Generating comprehensive report..."):
+                    try:
+                        # Import the pipeline
+                        from agent.pipeline import SatelliteAnalysisPipeline
+                        
+                        # Save GIF to temp file for the pipeline
+                        gif_temp_path = os.path.join(tempfile.gettempdir(), f"timelapse_{safe_area_name}.gif")
+                        with open(gif_temp_path, "wb") as f:
+                            f.write(st.session_state.gif_data)
+                        
+                        # Prepare YoY data for pipeline
+                        yoy_df = calculate_yoy_changes(df)
+                        
+                        # Get area name
+                        area_display_name = st.session_state.get("hotspot_used", "Selected Area")
+                        
+                        # Run the pipeline
+                        pipeline = SatelliteAnalysisPipeline(gemini_api_key=gemini_key)
+                        result = pipeline.run_sequential(
+                            data_df=yoy_df,
+                            area_name=area_display_name,
+                            gif_path=gif_temp_path,
+                            time_period={"start": str(years[0]), "end": str(years[-1])},
+                            generate_pdf=False  # Skip PDF as requested to avoid GTK dependency issues
+                        )
+                        
+                        if result.get("error"):
+                            st.error(f"Report generation failed: {result['error']}")
+                        else:
+                            st.session_state.report_result = result
+                            st.success("✅ Report generated successfully!")
+                            
+                    except ImportError as e:
+                        st.error(f"Pipeline not available: {e}")
+                    except Exception as e:
+                        st.error(f"Error generating report: {e}")
+            
+            if not gemini_key:
+                st.caption("⚠️ Set GEMINI_API_KEY in .env")
+            else:
+                st.caption("Uses AI to analyze trends")
+        
+        with export_cols[3]:
+            st.markdown("#### 📋 Report Downloads")
+            
+            if st.session_state.get("report_result"):
+                result = st.session_state.report_result
+                
+                # HTML Report download
+                if result.get("html_path") and os.path.exists(result["html_path"]):
+                    with open(result["html_path"], "r", encoding="utf-8") as f:
+                        html_content = f.read()
+                    st.download_button(
+                        label="📥 Download HTML",
+                        data=html_content,
+                        file_name=f"report_{safe_area_name}.html",
+                        mime="text/html",
+                        use_container_width=True
+                    )
+                
+                # PDF Report download (if available)
+                if result.get("pdf_path") and os.path.exists(result["pdf_path"]):
+                    with open(result["pdf_path"], "rb") as f:
+                        pdf_content = f.read()
+                    st.download_button(
+                        label="📥 Download PDF",
+                        data=pdf_content,
+                        file_name=f"report_{safe_area_name}.pdf",
+                        mime="application/pdf",
+                        use_container_width=True
+                    )
+                elif result.get("pdf_error"):
+                    st.caption(f"PDF: {result['pdf_error']}")
+                
+                st.caption("✅ Report ready")
+            else:
+                st.caption("Generate a report first")
 
 
 if __name__ == "__main__":

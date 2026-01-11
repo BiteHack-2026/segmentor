@@ -8,6 +8,7 @@ Timeline: H 2-4
 
 from PIL import Image, ImageDraw, ImageFont
 import os
+import tempfile
 from typing import Tuple, Optional, List
 
 
@@ -283,7 +284,7 @@ def node_2_filmstrip_generator(state: dict) -> dict:
         output_filename = f"filmstrip_{safe_area_name}.png"
         
         # Default output location
-        output_path = os.path.join('/tmp', output_filename)
+        output_path = os.path.join(tempfile.gettempdir(), output_filename)
         
         # Generate filmstrip
         filmstrip_path = generate_filmstrip(

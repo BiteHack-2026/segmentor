@@ -10,12 +10,19 @@ import os
 from typing import Optional
 
 # Try to import WeasyPrint, but don't fail if not available
+# On Windows, WeasyPrint may be installed but GTK libraries missing
 try:
     from weasyprint import CSS, HTML
 
     WEASYPRINT_AVAILABLE = True
+    WEASYPRINT_ERROR = None
 except ImportError:
     WEASYPRINT_AVAILABLE = False
+    WEASYPRINT_ERROR = "WeasyPrint not installed"
+except OSError as e:
+    # This catches missing GTK/Pango libraries on Windows
+    WEASYPRINT_AVAILABLE = False
+    WEASYPRINT_ERROR = f"WeasyPrint GTK libraries missing: {str(e)[:100]}"
 
 
 class PDFPublisherError(Exception):
@@ -154,7 +161,7 @@ def node_5_publisher(state: dict, generate_pdf_output: bool = True) -> dict:
                     pdf_path = None
             else:
                 # WeasyPrint not available - skip PDF generation
-                state["pdf_error"] = "WeasyPrint not installed - PDF generation skipped"
+                state["pdf_error"] = WEASYPRINT_ERROR or "WeasyPrint not available - PDF generation skipped"
                 pdf_path = None
 
         # Update state

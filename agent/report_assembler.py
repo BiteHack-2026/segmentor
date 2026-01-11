@@ -8,6 +8,7 @@ Timeline: H 6-9
 
 import base64
 import os
+import tempfile
 from datetime import datetime
 from typing import Dict, Optional
 
@@ -275,7 +276,7 @@ def node_4_report_assembler(state: dict, template_path: Optional[str] = None) ->
         output_filename = f"report_{safe_area_name}_{timestamp}.html"
 
         # Default output location
-        output_path = os.path.join("/tmp", output_filename)
+        output_path = os.path.join(tempfile.gettempdir(), output_filename)
 
         # Assemble report
         html_path = assemble_report(
