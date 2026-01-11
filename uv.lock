@@ -1119,6 +1119,19 @@ wheels = [
 ]
 
 [[package]]
+name = "plotly"
+version = "6.5.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "narwhals" },
+    { name = "packaging" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d6/ff/a4938b75e95114451efdb34db6b41930253e67efc8dc737bd592ef2e419d/plotly-6.5.1.tar.gz", hash = "sha256:b0478c8d5ada0c8756bce15315bcbfec7d3ab8d24614e34af9aff7bfcfea9281", size = 7014606 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e9/8e/24e0bb90b2d75af84820693260c5534e9ed351afdda67ed6f393a141a0e2/plotly-6.5.1-py3-none-any.whl", hash = "sha256:5adad4f58c360612b6c5ce11a308cdbc4fd38ceb1d40594a614f0062e227abe1", size = 9894981 },
+]
+
+[[package]]
 name = "proto-plus"
 version = "1.27.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1538,7 +1551,9 @@ dependencies = [
     { name = "folium" },
     { name = "matplotlib" },
     { name = "numpy" },
+    { name = "pandas" },
     { name = "pillow" },
+    { name = "plotly" },
     { name = "python-dotenv" },
     { name = "requests" },
     { name = "streamlit" },
@@ -1554,7 +1569,9 @@ requires-dist = [
     { name = "folium", specifier = ">=0.18.0" },
     { name = "matplotlib", specifier = ">=3.10.8" },
     { name = "numpy", specifier = ">=2.4.1" },
+    { name = "pandas", specifier = ">=2.2.0" },
     { name = "pillow", specifier = ">=11.0.0" },
+    { name = "plotly", specifier = ">=5.18.0" },
     { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "requests", specifier = ">=2.32.5" },
     { name = "streamlit", specifier = ">=1.41.0" },
